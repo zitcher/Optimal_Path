@@ -58,34 +58,31 @@ class FireBot {
 	void chooseDir(){
 		//hold already searched values
 		Map<String, String> closed = new HashMap<String, String>(); //the key is the position, the cost is the value
-		ArrayList<Node> fringe = new ArrayList<Node>();
+		ArrayList<Node> fringe = new ArrayList<Node>(); //nodes we have yet to look at
 
 		fringe.add(new Node(this.getCoords(), this.getDir(), goal, 0, null));		
 		while(true){
-			//if fringe is empty than the search has failed
+
+			//if fringe is empty than the search has failed so stop the bot
 			if(fringe.size()<=0){
-				//println("failed");
 				setDir("none");
-				//println("closed:" + closed);
 				break;
 			}
 
 			//set the current node to the first in the array: breadth search
 			int target = 0;
-			Node currentNode = fringe.get(0);
-			String nodeCoords = Arrays.toString(currentNode.getCoords());
+			Node currentNode = fringe.get(0); //variable to hold the node for reference
+			String nodeCoords = Arrays.toString(currentNode.getCoords()); //variable to hold the coords for reference
 
-			//if the node is at the goal return the direction of the top of the node tree
+			//If the node is at the goal return the direction of the top of the node tree 
+			//This will return the directions for the first step of the current optimal path
 			if(Arrays.equals(currentNode.getCoords(), goal)) {
-				//println("SUCCESS");
 				setDir(currentNode.getFirstMove().getDir());
 				break;
-			} else {
-				//print(Arrays.toString(currentNode.getCoords()));
-				//print(Arrays.toString(goal));
 			}
 
-			//if the node is not in the closed set or better than the one in the closed set
+			//If the node is not in the closed set (already looked at) or better than the one in the closed set:
+			//we should explore and expand the node to see if it leads to a optimum path
 			if( !closed.containsKey(nodeCoords) 
 				|| Integer.parseInt(closed.get(nodeCoords)) > currentNode.getPathCost() ){
 				//put it in the closed set
@@ -98,19 +95,20 @@ class FireBot {
 					fringe.add(n);
 				}
 			}
-			//remove target
+			//Now that we have looked at the node, we remove it from the fringe because we no longer need it
 			fringe.remove(target);
 
 		}
 	}
 
-
+	//draws the rectangle
 	void drawBot(){
 		fill(c);
 		noStroke();
 		rect(getX(),getY(),theSize,theSize);
 	}
 
+	//moves the rectangle in the current stated direction
 	void move(){
 		dir = getDir();
 		if(dir == "east")
@@ -123,37 +121,26 @@ class FireBot {
 			changeY(10);
 	}
 
+	//this is called every frame to run the bot
 	void run(){
 		chooseDir();
-		//print(get(x,y) == -16776961 || get(x,y) == -16777216 );
 		move();
 		drawBot();
 	}
 
 }
 
-class OriginalBot {
-
-}
-
-void draw(){
-	if(mousePressed){
-		stroke(13,222,0,255);
-		strokeWeight(10);
-		line(mouseX, mouseY, pmouseX, pmouseY);
-	}
-	player2.run();
-}
-
+//A node in a tree of decisions representing a coordinate and a facing direction (the bot can make a 180 degree turn)
 class Node {
-	private int[] coords; //contain x, y
-	private String dir;
-	private int[] goal; //contain x, y
-	private int pathCost;
-	private int heuristic;
-	private Node parent;
-	private Node[] children;
+	private int[] coords; //contain x, y of this node
+	private String dir; //current facing direction
+	private int[] goal; //contain x, y of what the bot is trying to reach
+	private int pathCost; //how many moves it would take to get to this coordinate
+	private int heuristic; //makes node search more intelligent, but I was to lazy to implement it
+	private Node parent; //the previous node that led to this
+	private Node[] children; //nodes that can be expanded from this
 
+	//instantiate the node
 	Node(int[] coords, String dir, int[] goal, int pathCost, Node parent){
 		this.coords = coords;
 		this.dir = dir;
@@ -207,10 +194,12 @@ class Node {
 		return this.dir;
 	}
 
+	//returns the children of this node
 	ArrayList<Node> expand(){
+		//will hold what we will return
 		ArrayList<Node> expansion = new ArrayList<Node>();
 		
-		//check if surroundings are open and if so add node to arraylist
+		//each if statements checks an adjacent coord is viable for a node and if so adds the node to expansion arraylist
 
 		//east
 		if(dir != "west" && ( get(getX()+10, getY()) == -16776961 || get(getX()+10, getY()) == -16777216) ){
@@ -235,6 +224,7 @@ class Node {
 		return expansion;
 	}
 
+	//returns the total path of nodes to get to the current one
 	ArrayList<Node> showPath(ArrayList<Node> branch){
 		branch.add(0, this);
 		if(getParent() == null)
@@ -242,6 +232,7 @@ class Node {
 		return getParent().showPath(branch);
 	}
 
+	//get the first node of this subranch
 	Node getFirstMove(){
 		//we have to get the parent twice because the first node is simply our current position
 		//so we want the second node
@@ -253,4 +244,18 @@ class Node {
 
 		return getParent().getFirstMove();
 	}
+}
+
+//This is the main function called every frame that runs the program
+void draw(){
+
+	//If mouse is pressed, draw a barrier
+	if(mousePressed){
+		stroke(13,222,0,255);
+		strokeWeight(10);
+		line(mouseX, mouseY, pmouseX, pmouseY);
+	}
+
+	//run the bot
+	player2.run();
 }
