@@ -22,11 +22,6 @@ class FireBot {
 	private int[] goal;
 	private int c;
 	private String dir = "west";
-	private boolean alive;
-	private int nPoints = 0;
-	private int sPoints = 0;
-	private int ePoints = 0;
-	private int wPoints = 0;
 
 	FireBot(){
 		coords = new int[] {495, 255};
